@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SalstudioZ.Pakar — Diagnosis Kerusakan Penyimpanan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar">
+  <div class="container nav-inner">
+    <a class="nav-brand" href="/">
+      <div class="nav-brand-icon"><img src="{{ url_for('static', filename='kulkas.png') }}" alt="Kulkas"/></div>
+      <div class="nav-brand-text">
+        <span class="nav-brand-name">SalstudioZ<span>.Pakar</span></span>
+        <span class="nav-brand-sub">Forward Chaining</span>
+      </div>
+    </a>
+    <div class="nav-divider"></div>
+    <div class="nav-spacer"></div>
+    <a class="nav-link-ext" href="http://localhost:5001" target="_blank">
+      <img src="{{ url_for('static', filename='kulkas.png') }}" alt="Kulkas"/>
+      <span>SalstudioZ.Fuzzy</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-row">
+      <div class="hero-left">
+        <div class="hero-eyebrow">Forward Chaining</div>
+        <h1 class="hero-title">Diagnosis <span>Kerusakan</span><br/>Bahan Penyimpanan</h1>
+        <p class="hero-desc">Centang gejala yang Anda temukan pada bahan makanan atau produk skincare. Sistem pakar akan mencocokkan pola gejala dengan basis pengetahuan untuk menemukan penyebab dan solusinya.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-card">
+          <div class="stat-icon-wrap amber"><img src="{{ url_for('static', filename='kulkas.png') }}" alt="Kulkas"/></div>
+          <div class="stat-info">
+            <span class="stat-num">16</span>
+            <span class="stat-lbl">Aturan Pakar</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrap green"><i class="fa-solid fa-list-check"></i></div>
+          <div class="stat-info">
+            <span class="stat-num">17</span>
+            <span class="stat-lbl">Gejala</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon-wrap purple"><i class="fa-solid fa-layer-group"></i></div>
+          <div class="stat-info">
+            <span class="stat-num">6</span>
+            <span class="stat-lbl">Kategori</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PAGE BODY ══ -->
+<div class="page-body">
+<div class="container">
+<div class="main-grid">
+
+  <!-- ── INPUT PANEL ── -->
+  <div class="panel panel-sticky">
+    <div class="panel-head">
+      <div class="panel-head-icon"><i class="fa-solid fa-list-check"></i></div>
+      <h2>Pilih Gejala yang Ditemukan</h2>
+    </div>
+    <div class="panel-body">
+
+      <div class="count-bar" id="count-bar">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="count-text">0 gejala dipilih</span>
+        <button class="clear-btn" id="clear-btn" onclick="clearAll()" style="display:none;">
+          <i class="fa-solid fa-xmark"></i> Hapus Semua
+        </button>
+      </div>
+
+      <div class="sym-groups" id="sym-form">
+        {% for group_name, group_data in symptom_groups.items() %}
+        <div class="sym-group" style="--group-color: {{ group_data.color }}">
+          <div class="group-head">
+            <i class="fas {{ group_data.icon }} group-icon"></i>
+            <span class="group-title">{{ group_name }}</span>
+          </div>
+          <div class="sym-list">
+            {% for sym_id, sym_label in group_data.symptoms %}
+            <label class="sym-item" for="{{ sym_id }}">
+              <input type="checkbox" id="{{ sym_id }}" name="symptoms" value="{{ sym_id }}" onchange="updateCount()"/>
+              <span class="chk"></span>
+              <span class="sym-label">{{ sym_label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <button id="btn-diag" class="btn-diag" onclick="doDiagnose()">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span id="btn-text">Diagnosa Sekarang</span>
+        <i class="fa-solid fa-spinner fa-spin btn-spin" id="btn-spin"></i>
+      </button>
+
+      <div class="err-box" id="err-box">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <span id="err-text"></span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── RESULTS COLUMN ── -->
+  <div class="results-col" id="results-col">
+
+    <div class="results-empty" id="results-empty">
+      <div class="results-empty-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+      <h3>Belum ada hasil diagnosa</h3>
+      <p>Centang gejala yang Anda temukan di sebelah kiri, lalu klik "Diagnosa Sekarang".</p>
+    </div>
+
+    <div id="diag-output" style="display:none; flex-direction:column; gap:0.85rem;"></div>
+
+  </div>
+
+</div>
+</div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <img src="{{ url_for('static', filename='kulkas.png') }}" alt="Kulkas"/>
+      <span>SalstudioZ</span>.Pakar
+    </div>
+    <div class="footer-right">
+      <span>Responsi 1 Praktikum KB</span>
+      <div class="footer-dot"></div>
+      <div class="footer-dot"></div>
+      <a href="http://localhost:5001" target="_blank">SalstudioZ.Fuzzy</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function updateCount() {
+  const n    = document.querySelectorAll('input[name="symptoms"]:checked').length;
+  const txt  = document.getElementById('count-text');
+  const clr  = document.getElementById('clear-btn');
+  txt.textContent = n + ' gejala dipilih';
+  clr.style.display = n > 0 ? 'flex' : 'none';
+}
+
+function clearAll() {
+  document.querySelectorAll('input[name="symptoms"]').forEach(el => el.checked = false);
+  updateCount();
+}
+
+async function doDiagnose() {
+  const btn  = document.getElementById('btn-diag');
+  const spin = document.getElementById('btn-spin');
+  const txt  = document.getElementById('btn-text');
+  const err  = document.getElementById('err-box');
+  const errT = document.getElementById('err-text');
+
+  const selected = Array.from(
+    document.querySelectorAll('input[name="symptoms"]:checked')
+  ).map(el => el.value);
+
+  if (selected.length === 0) {
+    errT.textContent  = 'Pilih minimal satu gejala untuk memulai diagnosis.';
+    err.style.display = 'flex';
+    return;
+  }
+
+  err.style.display  = 'none';
+  btn.disabled       = true;
+  spin.style.display = 'inline-block';
+  txt.textContent    = 'Menganalisis…';
+
+  try {
+    const res  = await fetch('/diagnose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symptoms: selected }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errT.textContent  = data.error || 'Terjadi kesalahan.';
+      err.style.display = 'flex';
+      return;
+    }
+
+    renderDiagnoses(data.diagnoses);
+
+  } catch (e) {
+    errT.textContent  = 'Gagal terhubung ke server.';
+    err.style.display = 'flex';
+  } finally {
+    btn.disabled       = false;
+    spin.style.display = 'none';
+    txt.textContent    = 'Diagnosa Sekarang';
+  }
+}
+
+function renderDiagnoses(diagnoses) {
+  document.getElementById('results-empty').style.display = 'none';
+
+  const output = document.getElementById('diag-output');
+  output.innerHTML = '';
+  output.style.display = 'flex';
+
+  if (diagnoses.length === 0) {
+    output.innerHTML = `
+      <div class="no-result-card">
+        <div class="no-result-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <h3>Tidak Ditemukan Masalah Signifikan</h3>
+        <p>Berdasarkan gejala yang dipilih, sistem penyimpanan Anda tampak dalam kondisi baik. Lakukan pemantauan berkala untuk hasil optimal.</p>
+      </div>`;
+    output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+
+  // Header
+  output.innerHTML = `
+    <div class="res-header">
+      <i class="fa-solid fa-clipboard-list res-header-icon"></i>
+      <h2>Hasil Diagnosa</h2>
+      <span class="res-count">${diagnoses.length} masalah terdeteksi</span>
+    </div>`;
+
+  diagnoses.forEach((d, i) => {
+    const card = document.createElement('div');
+    card.className = 'diag-card';
+    card.style.animationDelay = (i * 0.07) + 's';
+    card.innerHTML = `
+      <div class="diag-card-top">
+        <span class="diag-rule-tag">Aturan #${d.rule_id}</span>
+        <span class="diag-num">${i + 1} / ${diagnoses.length}</span>
+      </div>
+      <div class="diag-diagnosis">
+        <div class="diag-section-label">
+          <i class="fa-solid fa-triangle-exclamation"></i> Diagnosis
+        </div>
+        <p>${d.diagnosis}</p>
+      </div>
+      <div class="diag-saran">
+        <div class="diag-section-label">
+          <i class="fa-solid fa-circle-check"></i> Saran Perbaikan
+        </div>
+        <p>${d.saran}</p>
+      </div>`;
+    output.appendChild(card);
+  });
+
+  output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
